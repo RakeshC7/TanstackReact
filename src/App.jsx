@@ -1,7 +1,7 @@
-import { createColumnHelper, flexRender, useReactTable, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table';
+import { createColumnHelper, flexRender, useReactTable, getCoreRowModel, getSortedRowModel, getFilteredRowModel } from '@tanstack/react-table';
 import { useState } from 'react';
 import data from './constants/data.json';
-import { Mail, User, Phone, ArrowUpDown } from 'lucide-react';
+import { Mail, User, Phone, ArrowUpDown, Search } from 'lucide-react';
 import './App.css'
 
 function App() {
@@ -10,6 +10,8 @@ function App() {
   const [userData, setUserData] = useState(data);
   //Table Sorting
   const [sorting, setSorting] = useState([]);
+  // searching functionality
+  const [ globalFilter, setGlobalFilter ] = useState("");
 
   const columns = [ 
     columnHelper.accessor("id", {
@@ -57,13 +59,20 @@ function App() {
     columns,
     //Table Sorting
     state: {
-      sorting
+      sorting,
+      globalFilter
     },
     getCoreRowModel: getCoreRowModel(),
+    
     // to enable sorting
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
+    
+    // searching functionality
+    onGlobalFilterChange: setGlobalFilter,
+    getFilteredRowModel: getFilteredRowModel()
   });
+
   // to get the Header
   // console.log(table.getHeaderGroups());
 
@@ -72,6 +81,17 @@ function App() {
 
   return (
     <div className='flex flex-col min-h-screen max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8'>
+
+      <div className='mb-4 relative'>
+        <input
+          value={globalFilter ?? '' }
+          onChange={e => setGlobalFilter(e.target.value)}
+          placeholder='Search...'
+          className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500'
+        />
+        <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400' size={20} />
+      </div>
+
       <div className='overflow-x-auto bg-white shadow-md rounded-lg'>
         <table className='min-w-full divide-y divide-gray-200'>
           <thead className='bg-gray-50'>
