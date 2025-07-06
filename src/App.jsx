@@ -1,13 +1,15 @@
-import { createColumnHelper, flexRender, useReactTable, getCoreRowModel } from '@tanstack/react-table';
+import { createColumnHelper, flexRender, useReactTable, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table';
 import { useState } from 'react';
 import data from './constants/data.json';
-import { Mail, User, Phone } from 'lucide-react';
+import { Mail, User, Phone, ArrowUpDown } from 'lucide-react';
 import './App.css'
 
 function App() {
 
   const columnHelper = createColumnHelper();
   const [userData, setUserData] = useState(data);
+  //Table Shorting
+  const [sorting, setSorting] = useState([]);
 
   const columns = [ 
     columnHelper.accessor("id", {
@@ -53,7 +55,14 @@ function App() {
   const table = useReactTable({
     data: userData,
     columns,
-    getCoreRowModel: getCoreRowModel()
+    //Table Shorting
+    state: {
+      sorting
+    },
+    getCoreRowModel: getCoreRowModel(),
+    // to enable sorting
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
   });
   // to get the Header
   // console.log(table.getHeaderGroups());
@@ -74,13 +83,21 @@ function App() {
                       <th key={header.id}
                         className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
                       >
-                        <div>
+                        <div 
+                          {
+                            ...{
+                              className: header.column.getCanSort() ? 'cursor-pointer select-none flex item-center' : '',
+                              onClick: header.column.getToggleSortingHandler(),
+                            }
+                          }
+                        >
                           {
                             flexRender(
                               header.column.columnDef.header,
                               header.getContext()
                             )
                           }
+                          <ArrowUpDown className='ml-2' size={14} />
                         </div>
                       </th>
                     ))}
