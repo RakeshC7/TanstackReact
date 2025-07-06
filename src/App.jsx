@@ -8,7 +8,7 @@ function App() {
 
   const columnHelper = createColumnHelper();
   const [userData, setUserData] = useState(data);
-  //Table Shorting
+  //Table Sorting
   const [sorting, setSorting] = useState([]);
 
   const columns = [ 
@@ -55,7 +55,7 @@ function App() {
   const table = useReactTable({
     data: userData,
     columns,
-    //Table Shorting
+    //Table Sorting
     state: {
       sorting
     },
