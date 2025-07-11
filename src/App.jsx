@@ -1,24 +1,47 @@
-import { createColumnHelper, flexRender, useReactTable, getCoreRowModel, getSortedRowModel, getFilteredRowModel } from '@tanstack/react-table';
+import { createColumnHelper,
+  flexRender, 
+  useReactTable, 
+  getCoreRowModel, 
+  getSortedRowModel, 
+  getFilteredRowModel, 
+  getPaginationRowModel 
+} from '@tanstack/react-table';
 import { useState } from 'react';
 import data from './constants/data.json';
-import { Mail, User, Phone, ArrowUpDown, Search } from 'lucide-react';
+import { Mail, 
+  User, 
+  Phone, 
+  ArrowUpDown, 
+  Search, 
+  ChevronsLeft, 
+  ChevronLeft, 
+  ChevronRight,  
+  ChevronsRight,
+  Sigma
+} from 'lucide-react';
 import './App.css'
 
 function App() {
 
   const columnHelper = createColumnHelper();
   const [userData, setUserData] = useState(data);
-  //Table Sorting
+
+  // Table Sorting
   const [sorting, setSorting] = useState([]);
-  // searching functionality
-  const [ globalFilter, setGlobalFilter ] = useState("");
+  // Searching functionality
+  const [globalFilter, setGlobalFilter] = useState("");
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   const columns = [ 
     columnHelper.accessor("id", {
       cell: info => info.getValue(),
       header: () => (
         <span className='flex item-center'>
-          <User className='mr-3' size={16} /> ID
+          <Sigma className='mr-3' size={16} /> ID
         </span>
       ),
     }),
@@ -54,21 +77,32 @@ function App() {
     })
   ]
 
+  // Table instance with all plugins and controlled state
   const table = useReactTable({
     data: userData,
     columns,
-    //Table Sorting
+    // Table state (sorting, filtering, pagination)
     state: {
       sorting,
-      globalFilter
+      globalFilter,
+      pagination
     },
+    // Callback for pagination state changes
+    onPaginationChange: setPagination,
+    // Initial pagination state
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      }
+    },
+    // For table row rendering
     getCoreRowModel: getCoreRowModel(),
-    
-    // to enable sorting
+    // For pagination (required for pagination to work)
+    getPaginationRowModel: getPaginationRowModel(),
+    // To enable sorting
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
-    
-    // searching functionality
+    // Searching functionality
     onGlobalFilterChange: setGlobalFilter,
     getFilteredRowModel: getFilteredRowModel()
   });
@@ -81,7 +115,7 @@ function App() {
 
   return (
     <div className='flex flex-col min-h-screen max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8'>
-
+      <h1 className='text-2xl font-bold mb-6'>User Data Table</h1>
       <div className='mb-4 relative'>
         <input
           value={globalFilter ?? '' }
@@ -141,6 +175,84 @@ function App() {
             }
           </tbody>
         </table>
+      </div>
+
+      <div className='flex flex-col sm:flex-row justify-between items-center mt-4 text-sm text-gray-700'>
+        <div className='flex items-center mb-4 sm:mb-0'>
+          <span className='mr-2 dark:text-white'>Items per page:</span>
+          <select
+            className='border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2 bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600'
+            value={table.getState().pagination.pageSize}
+            onChange={e => {
+              // table.setPageSize(Number(e.target.value));
+              setPagination(prev => ({
+                ...prev,
+                pageSize: Number(e.target.value),
+                pageIndex: 0, // reset to first page
+              }));
+            }}
+          >
+            {[5, 10, 20, 30, 40].map(pageSize => (
+              <option key={pageSize} value={pageSize}>
+                {pageSize}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className='flex items-center space-x-2 dark:text-white'>
+          {/* First Page Button */}
+          <button
+            className='p-2 rounded-md bg-gray-200 text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-indigo-800 dark:hover:text-white disabled:opacity-50 transition-colors'
+            onClick={() => table.setPageIndex(0)}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <ChevronsLeft size={20} />
+          </button>
+
+          {/* Previous Page Button */}
+          <button
+            className='p-2 rounded-md bg-gray-200 text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-indigo-800 dark:hover:text-white disabled:opacity-50 transition-colors'
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          {/* Page Number Input */}
+          <span className='flex items-center'>
+            <input 
+              min={1}
+              max={table.getPageCount()}
+              type='number'
+              className='w-16 p-2 rounded-md border-gray-300 text-center bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600'
+              value={table.getState().pagination.pageIndex + 1}
+              onChange={(e) => {
+                const page = e.target.value ? Number(e.target.value) - 1 : 0;
+                table.setPageIndex(page);
+              }}
+            />
+            <span className='ml-1 dark:text-white'>of {table.getPageCount()}</span>
+          </span>
+
+          {/* Next Page Button */}
+          <button
+            className='p-2 rounded-md bg-gray-200 text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-indigo-800 dark:hover:text-white disabled:opacity-50 transition-colors'
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            <ChevronRight size={20} />
+          </button>
+
+          {/* Last Page Button */}
+          <button
+            className='p-2 rounded-md bg-gray-200 text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-indigo-800 dark:hover:text-white disabled:opacity-50 transition-colors'
+            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+            disabled={!table.getCanNextPage()}
+          >
+            <ChevronsRight size={20} />
+          </button>
+        </div>
       </div>
     </div>
   )
